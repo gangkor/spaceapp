@@ -262,6 +262,17 @@ export const interceptors: WorkflowInterceptorsFactory = () => {
         // span instead of overwriting the turn context.
         const inherited = childTraceparent(input.options.args);
         const parsed = parseTraceparent(inherited);
+        // A background continuation starts a new trace and links to its source.
+        const linkOnly = !parsed && (input.options.args ?? []).some(arg => findTraceLink(arg, 2));
+        if (linkOnly) {
+          return next({
+            ...input,
+            headers: {
+              ...headers,
+              [SPAN_LINK_HEADER]: defaultPayloadConverter.toPayload(`${trace.traceId}:${spanId}`)
+            }
+          });
+        }
         if (parsed && parsed.traceId !== trace.traceId) {
           return next({
             ...input,

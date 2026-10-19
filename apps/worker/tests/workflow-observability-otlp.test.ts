@@ -58,7 +58,10 @@ describe("workflow OTLP export", () => {
       serviceName: "space-worker",
       batchSize: 64
     });
-    env = await TestWorkflowEnvironment.createLocal();
+    const executable = process.env.TEMPORAL_CLI_PATH || process.env.TEMPORAL_EXECUTABLE;
+    env = await TestWorkflowEnvironment.createLocal(
+      executable ? { server: { executable: { path: executable } } } : undefined
+    );
   }, 240_000);
 
   afterAll(async () => {
